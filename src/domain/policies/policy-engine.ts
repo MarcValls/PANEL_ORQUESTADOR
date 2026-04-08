@@ -15,8 +15,8 @@ export const policyEngine = {
 
     const requiresApproval = policies.some((p) => p.evaluate(context).requiresApproval)
 
-    if (requiresApproval && run.status === 'Queued') {
-      return { ...run, status: 'Requires approval' }
+    if (requiresApproval && run.runtimeStatus === 'queued') {
+      return { ...run, runtimeStatus: 'waiting_approval', approvalState: 'required' }
     }
 
     return run

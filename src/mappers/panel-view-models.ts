@@ -1,12 +1,13 @@
 import type { Architecture, Run, Task } from '../lib/types'
 import type { DomainRun } from '../domain/runs/types'
 import type { DomainTask } from '../domain/tasks/types'
+import { mapRuntimeStatusToRunStatus } from '../domain/runs/run-status-mapper'
 
 export const mapDomainRunToViewModel = (run: DomainRun): Run => ({
   id: run.id,
   architectureId: run.architectureId,
   title: run.title,
-  status: run.status,
+  status: mapRuntimeStatusToRunStatus(run.runtimeStatus),
   startedAt: run.startedAt,
   duration: run.duration,
   node: run.node,

@@ -1,9 +1,26 @@
-export type DomainRunStatus =
-  | 'Succeeded'
-  | 'Running'
-  | 'Queued'
-  | 'Failed'
-  | 'Requires approval'
+export type RuntimeRunStatus =
+  | 'queued'
+  | 'planning'
+  | 'waiting_approval'
+  | 'executing'
+  | 'blocked'
+  | 'retrying'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled'
+
+export type RuntimeApprovalState = 'not_required' | 'required' | 'approved' | 'rejected'
+
+export type RuntimeToolCall = {
+  id: string
+  toolName: string
+  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'blocked'
+  startedAt?: string
+  finishedAt?: string
+  inputSummary?: string
+  outputSummary?: string
+  error?: string
+}
 
 export type RiskLevel = 'Low' | 'Medium' | 'High'
 
@@ -11,13 +28,17 @@ export type DomainRun = {
   id: string
   architectureId: string
   title: string
-  status: DomainRunStatus
+  runtimeStatus: RuntimeRunStatus
+  approvalState: RuntimeApprovalState
   startedAt: string
+  finishedAt?: string
   duration: string
   node: string
   initiatedBy: string
   riskLevel: RiskLevel
-  environment: string
+  environment: 'sandbox' | 'staging' | 'production'
+  toolCalls: RuntimeToolCall[]
+  errors: string[]
 }
 
 export type CreateRunParams = {
