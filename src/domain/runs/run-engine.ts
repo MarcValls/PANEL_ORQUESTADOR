@@ -1,7 +1,8 @@
-import type { CreateRunParams, DomainRun } from './types'
+import type { CreateRunParams, DomainRun, RuntimeRunStatus, RuntimeToolCall } from './types'
 import { useRunStore } from './run-store'
 import { useEventStore } from '../events/event-store'
 import { policyEngine } from '../policies/policy-engine'
+import { executeToolCall } from '../tools/execute-tool-call'
 import { createId } from '../../infrastructure/ids/create-id'
 import { now } from '../../infrastructure/clock/now'
 
@@ -101,7 +102,25 @@ const emitRunBlocked = (run: DomainRun, reason: string): void => {
   })
 }
 
-const emitEvents = (run: DomainRun, decisionReason: string): void => {
+const emitRunSucceeded = (run: DomainRun): void => {
+  useEventStore.getState().append({
+    id: createId('EVT'),
+    type: 'RUN_SUCCEEDED',
+    occurredAt: now(),
+    payload: { runId: run.id, title: run.title },
+  })
+}
+
+const emitRunFailed = (run: DomainRun, error: string): void => {
+  useEventStore.getState().append({
+    id: createId('EVT'),
+    type: 'RUN_FAILED',
+    occurredAt: now(),
+    payload: { runId: run.id, title: run.title, error },
+  })
+}
+
+const emitRunCreatedAndDecision = (run: DomainRun, decisionReason: string): void => {
   emitRunCreated(run)
   if (run.runtimeStatus === 'waiting_approval') {
     emitApprovalRequired(run, decisionReason)
@@ -111,12 +130,70 @@ const emitEvents = (run: DomainRun, decisionReason: string): void => {
   }
 }
 
+// --- step 5: tool execution for queued runs ---------------------------------
+
+const INITIAL_TOOL_AGENT_ID = 'shell-agent'
+const INITIAL_TOOL_NAME = 'local_log'
+
+const runInitialToolCall = (run: DomainRun): void => {
+  const tcId = createId('TC')
+
+  const pendingTc: RuntimeToolCall = {
+    id: tcId,
+    toolName: INITIAL_TOOL_NAME,
+    status: 'running',
+    startedAt: now(),
+    inputSummary: `Run started: ${run.title}`,
+  }
+
+  useRunStore.getState().updateRun(run.id, {
+    runtimeStatus: 'executing',
+    toolCalls: [pendingTc],
+  })
+
+  const { result } = executeToolCall({
+    call: {
+      id: tcId,
+      name: INITIAL_TOOL_NAME,
+      args: { message: `Run ${run.id} started: ${run.title}`, level: 'info' },
+      context: { runId: run.id },
+    },
+    runId: run.id,
+    agentId: INITIAL_TOOL_AGENT_ID,
+  })
+
+  const tcStatus = result.status
+  const finishedTc: RuntimeToolCall = {
+    ...pendingTc,
+    status: tcStatus,
+    finishedAt: now(),
+    outputSummary: result.error ?? JSON.stringify(result.output).slice(0, 120),
+    error: result.error,
+  }
+
+  const finalStatus: RuntimeRunStatus = tcStatus === 'failed' ? 'failed' : 'succeeded'
+
+  useRunStore.getState().updateRun(run.id, {
+    runtimeStatus: finalStatus,
+    toolCalls: [finishedTc],
+  })
+
+  if (finalStatus === 'succeeded') {
+    emitRunSucceeded(run)
+  } else {
+    emitRunFailed(run, result.error ?? 'tool call failed')
+  }
+}
+
 // --- public API -------------------------------------------------------------
 
 export const createRun = (params: CreateRunParams): DomainRun => {
   const initial = buildInitialRun(params)
   const { run: evaluated, decisionReason } = applyPolicies(initial)
   insertIntoStore(evaluated)
-  emitEvents(evaluated, decisionReason)
+  emitRunCreatedAndDecision(evaluated, decisionReason)
+  if (evaluated.runtimeStatus === 'queued') {
+    runInitialToolCall(evaluated)
+  }
   return evaluated
 }

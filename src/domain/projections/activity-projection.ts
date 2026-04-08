@@ -38,6 +38,14 @@ const eventToActivityLine = (event: DomainEvent): string => {
       const { taskId } = event.payload
       return `Tarea actualizada: ${taskId}`
     }
+    case 'TOOL_CALL_STARTED': {
+      const { toolName, runId, inputSummary } = event.payload
+      return `Tool ${toolName} iniciada en run ${runId} — entrada: ${inputSummary}`
+    }
+    case 'TOOL_CALL_FINISHED': {
+      const { toolName, runId, status, outputSummary } = event.payload
+      return `Tool ${toolName} finalizada en run ${runId} — estado: ${status} — salida: ${outputSummary}`
+    }
     default:
       return assertNever(event)
   }
