@@ -45,7 +45,19 @@ export const executeToolCall = (options: ExecuteToolCallOptions): ExecuteToolCal
     },
   })
 
-  const result = tool.execute(call)
+  const result = (() => {
+    try {
+      return tool.execute(call)
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err)
+      return {
+        toolCallId: call.id,
+        status: 'failed' as const,
+        output: null,
+        error,
+      }
+    }
+  })()
 
   const outputSummary =
     result.error !== undefined ? result.error : JSON.stringify(result.output).slice(0, 120)

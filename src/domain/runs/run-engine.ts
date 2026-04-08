@@ -132,12 +132,15 @@ const emitRunCreatedAndDecision = (run: DomainRun, decisionReason: string): void
 
 // --- step 5: tool execution for queued runs ---------------------------------
 
+const INITIAL_TOOL_AGENT_ID = 'shell-agent'
+const INITIAL_TOOL_NAME = 'local_log'
+
 const runInitialToolCall = (run: DomainRun): void => {
   const tcId = createId('TC')
 
   const pendingTc: RuntimeToolCall = {
     id: tcId,
-    toolName: 'local_log',
+    toolName: INITIAL_TOOL_NAME,
     status: 'running',
     startedAt: now(),
     inputSummary: `Run started: ${run.title}`,
@@ -151,12 +154,12 @@ const runInitialToolCall = (run: DomainRun): void => {
   const { result } = executeToolCall({
     call: {
       id: tcId,
-      name: 'local_log',
+      name: INITIAL_TOOL_NAME,
       args: { message: `Run ${run.id} started: ${run.title}`, level: 'info' },
       context: { runId: run.id },
     },
     runId: run.id,
-    agentId: 'shell-agent',
+    agentId: INITIAL_TOOL_AGENT_ID,
   })
 
   const tcStatus = result.status
