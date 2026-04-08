@@ -1,16 +1,14 @@
-import type { Policy, PolicyContext, PolicyResult } from './types'
+import type { Policy, PolicyContext, PolicyDecision } from './types'
 
 export const approvalPolicy: Policy = {
   name: 'approval-policy',
-  evaluate: (context: PolicyContext): PolicyResult => {
-    const requiresApproval =
-      context.riskLevel === 'High' && context.environment === 'production'
-    return {
-      allowed: true,
-      requiresApproval,
-      reason: requiresApproval
-        ? 'High risk in production: manual approval required'
-        : undefined,
+  evaluate: (context: PolicyContext): PolicyDecision => {
+    if (context.riskLevel === 'High' && context.environment === 'production') {
+      return {
+        kind: 'require_approval',
+        reason: 'High risk in production: manual approval required',
+      }
     }
+    return { kind: 'allow' }
   },
 }

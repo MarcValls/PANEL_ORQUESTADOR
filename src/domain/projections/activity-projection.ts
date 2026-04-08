@@ -21,6 +21,10 @@ const eventToActivityLine = (event: DomainEvent): string => {
       const { title, error } = event.payload
       return `Fallo en ejecución: ${title} — ${error}`
     }
+    case 'RUN_BLOCKED': {
+      const { title, reason } = event.payload
+      return `Ejecución bloqueada: ${title} — ${reason}`
+    }
     case 'RUN_SUCCEEDED': {
       const { title } = event.payload
       return `Ejecución completada: ${title}`

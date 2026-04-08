@@ -35,6 +35,17 @@ export type RunFailedEvent = {
   }
 }
 
+export type RunBlockedEvent = {
+  id: string
+  type: 'RUN_BLOCKED'
+  occurredAt: string
+  payload: {
+    runId: string
+    title: string
+    reason: string
+  }
+}
+
 export type RunSucceededEvent = {
   id: string
   type: 'RUN_SUCCEEDED'
@@ -69,6 +80,7 @@ export type DomainEvent =
   | RunCreatedEvent
   | RunUpdatedEvent
   | RunFailedEvent
+  | RunBlockedEvent
   | RunSucceededEvent
   | TaskUpdatedEvent
   | ApprovalRequiredEvent

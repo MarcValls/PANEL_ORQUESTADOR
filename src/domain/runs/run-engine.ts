@@ -34,7 +34,16 @@ const buildInitialRun = (params: CreateRunParams): DomainRun => ({
 
 // --- step 2: policy evaluation ----------------------------------------------
 
-const applyPolicies = (run: DomainRun): DomainRun => policyEngine.evaluate(run)
+const applyPolicies = (run: DomainRun): DomainRun => {
+  const decision = policyEngine.evaluate(run)
+  if (decision.kind === 'block') {
+    return { ...run, runtimeStatus: 'blocked', errors: [decision.reason] }
+  }
+  if (decision.kind === 'require_approval') {
+    return { ...run, runtimeStatus: 'waiting_approval', approvalState: 'required' }
+  }
+  return run
+}
 
 // --- step 3: store insertion -------------------------------------------------
 
@@ -67,20 +76,20 @@ const emitApprovalRequired = (run: DomainRun): void => {
     payload: {
       runId: run.id,
       title: run.title,
-      reason: 'High risk run in production environment requires approval',
+      reason: run.errors[0] ?? 'Run requires approval before execution',
     },
     occurredAt: now(),
   })
 }
 
-const emitRunFailed = (run: DomainRun, error: string): void => {
+const emitRunBlocked = (run: DomainRun): void => {
   useEventStore.getState().append({
     id: createId('EVT'),
-    type: 'RUN_FAILED',
+    type: 'RUN_BLOCKED',
     payload: {
       runId: run.id,
       title: run.title,
-      error,
+      reason: run.errors[0] ?? 'Run blocked by policy evaluation',
     },
     occurredAt: now(),
   })
@@ -92,7 +101,7 @@ const emitEvents = (run: DomainRun): void => {
     emitApprovalRequired(run)
   }
   if (run.runtimeStatus === 'blocked') {
-    emitRunFailed(run, 'Run blocked by policy evaluation')
+    emitRunBlocked(run)
   }
 }
 
