@@ -252,10 +252,16 @@ a { color: inherit; text-decoration: none; }
   border-color: rgba(248, 113, 113, 0.18);
 }
 
-.status-queued, .status-todo, .status-soft {
+.status-queued, .status-todo, .status-soft, .status-requires-approval {
   color: var(--muted);
   background: rgba(148, 163, 184, 0.08);
   border-color: var(--line);
+}
+
+.status-requires-approval {
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.22);
 }
 
 /* ── Buttons ── */

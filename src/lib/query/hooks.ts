@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import type { OrchestratorPanelData } from '../types'
 import { queryKeys } from './query-keys'
+import { useRuntimeRunsProjection } from '../../domain/projections/runs-projection'
+import { useActivityProjection } from '../../domain/projections/activity-projection'
 
 const loadPanelData = async (): Promise<OrchestratorPanelData> => {
   const response = await fetch('/data/orchestrator-panel.json')
@@ -36,14 +38,22 @@ export const useTasksQuery = (architectureId: string) =>
     },
   })
 
-export const useRunsQuery = () =>
-  useQuery({
+export const useRunsQuery = () => {
+  const runtimeRuns = useRuntimeRunsProjection()
+  const query = useQuery({
     queryKey: queryKeys.runs,
     queryFn: async () => (await loadPanelData()).runs,
   })
+  const data = [...(query.data ?? []), ...runtimeRuns]
+  return { ...query, data }
+}
 
-export const useActivityQuery = () =>
-  useQuery({
+export const useActivityQuery = () => {
+  const eventActivity = useActivityProjection()
+  const query = useQuery({
     queryKey: ['activity'],
     queryFn: async () => (await loadPanelData()).activity,
   })
+  const data = [...eventActivity, ...(query.data ?? [])]
+  return { ...query, data }
+}

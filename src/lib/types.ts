@@ -2,7 +2,7 @@ export type ArchitectureStatus = 'Healthy' | 'At risk' | 'Paused'
 
 export type TaskStatus = 'Todo' | 'In progress' | 'Blocked' | 'Done'
 
-export type RunStatus = 'Succeeded' | 'Running' | 'Queued' | 'Failed'
+export type RunStatus = 'Succeeded' | 'Running' | 'Queued' | 'Failed' | 'Requires approval'
 
 export type Architecture = {
   id: string
