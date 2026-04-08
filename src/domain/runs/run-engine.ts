@@ -73,10 +73,26 @@ const emitApprovalRequired = (run: DomainRun): void => {
   })
 }
 
+const emitRunFailed = (run: DomainRun, error: string): void => {
+  useEventStore.getState().append({
+    id: createId('EVT'),
+    type: 'RUN_FAILED',
+    payload: {
+      runId: run.id,
+      title: run.title,
+      error,
+    },
+    occurredAt: now(),
+  })
+}
+
 const emitEvents = (run: DomainRun): void => {
   emitRunCreated(run)
   if (run.runtimeStatus === 'waiting_approval') {
     emitApprovalRequired(run)
+  }
+  if (run.runtimeStatus === 'blocked') {
+    emitRunFailed(run, 'Run blocked by policy evaluation')
   }
 }
 

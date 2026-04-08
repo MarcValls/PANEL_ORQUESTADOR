@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useUIStore } from '../app/store/ui-store'
 import { useRunsQuery } from '../lib/query/hooks'
 import { createRun } from '../domain/runs/run-engine'
-import type { RiskLevel } from '../domain/runs/types'
+import type { RiskLevel, Environment } from '../domain/runs/types'
 
 const statusFilters = ['Todas', 'Running', 'Queued', 'Succeeded', 'Failed', 'Requires approval'] as const
 
@@ -14,7 +14,7 @@ export const RunsPage = () => {
   const [showCreate, setShowCreate] = useState(false)
   const [createTitle, setCreateTitle] = useState('')
   const [createRisk, setCreateRisk] = useState<RiskLevel>('Low')
-  const [createEnv, setCreateEnv] = useState('staging')
+  const [createEnv, setCreateEnv] = useState<Environment>('staging')
 
   const filtered = useMemo(() => {
     const byScope = scope === 'active' ? runs.filter((r) => r.architectureId === activeArchitectureId) : runs
@@ -77,7 +77,7 @@ export const RunsPage = () => {
               <select
                 style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line)', background: 'var(--bg)', color: 'inherit', fontSize: '13px' }}
                 value={createEnv}
-                onChange={(e) => setCreateEnv(e.target.value)}
+                onChange={(e) => setCreateEnv(e.target.value as Environment)}
               >
                 <option>staging</option>
                 <option>production</option>
