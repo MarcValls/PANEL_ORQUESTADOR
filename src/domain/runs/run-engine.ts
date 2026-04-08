@@ -5,55 +5,65 @@ import { policyEngine } from '../policies/policy-engine'
 import { createId } from '../../infrastructure/ids/create-id'
 import { now } from '../../infrastructure/clock/now'
 
-export const createRun = (params: CreateRunParams): DomainRun => {
-  const id = createId('RUN')
-  const startedAt = new Date().toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+const normalizeEnvironment = (env: string): 'sandbox' | 'staging' | 'production' => {
+  if (env === 'sandbox' || env === 'staging' || env === 'production') return env
+  return 'sandbox'
+}
 
-  const rawRun: DomainRun = {
-    id,
-    architectureId: params.architectureId,
-    title: params.title,
-    status: 'Queued',
-    startedAt,
-    duration: '-',
-    node: params.node,
-    initiatedBy: params.initiatedBy,
-    riskLevel: params.riskLevel,
-    environment: params.environment,
-  }
+const buildInitialRun = (params: CreateRunParams): DomainRun => ({
+  id: createId('RUN'),
+  architectureId: params.architectureId,
+  title: params.title,
+  runtimeStatus: 'queued',
+  approvalState: 'not_required',
+  startedAt: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+  duration: '-',
+  node: params.node,
+  initiatedBy: params.initiatedBy,
+  riskLevel: params.riskLevel,
+  environment: normalizeEnvironment(params.environment),
+  toolCalls: [],
+  errors: [],
+})
 
-  const evaluated = policyEngine.evaluate(rawRun)
-
-  useRunStore.getState().addRun(evaluated)
-
+const emitRunCreated = (run: DomainRun): void => {
   useEventStore.getState().append({
     id: createId('EVT'),
     type: 'RUN_CREATED',
     payload: {
-      runId: evaluated.id,
-      title: evaluated.title,
-      architectureId: evaluated.architectureId,
-      status: evaluated.status,
-      riskLevel: evaluated.riskLevel,
-      environment: evaluated.environment,
+      runId: run.id,
+      title: run.title,
+      architectureId: run.architectureId,
+      runtimeStatus: run.runtimeStatus,
+      riskLevel: run.riskLevel,
+      environment: run.environment,
     },
     occurredAt: now(),
   })
+}
 
-  if (evaluated.status === 'Requires approval') {
-    useEventStore.getState().append({
-      id: createId('EVT'),
-      type: 'APPROVAL_REQUIRED',
-      payload: {
-        runId: evaluated.id,
-        title: evaluated.title,
-        reason: 'High risk run in production environment requires approval',
-      },
-      occurredAt: now(),
-    })
+const emitApprovalRequired = (run: DomainRun): void => {
+  useEventStore.getState().append({
+    id: createId('EVT'),
+    type: 'APPROVAL_REQUIRED',
+    payload: {
+      runId: run.id,
+      title: run.title,
+      reason: 'High risk run in production environment requires approval',
+    },
+    occurredAt: now(),
+  })
+}
+
+export const createRun = (params: CreateRunParams): DomainRun => {
+  const initial = buildInitialRun(params)
+  const evaluated = policyEngine.evaluate(initial)
+
+  useRunStore.getState().addRun(evaluated)
+  emitRunCreated(evaluated)
+
+  if (evaluated.runtimeStatus === 'waiting_approval') {
+    emitApprovalRequired(evaluated)
   }
 
   return evaluated
