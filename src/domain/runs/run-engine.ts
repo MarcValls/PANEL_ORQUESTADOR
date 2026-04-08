@@ -5,10 +5,21 @@ import { policyEngine } from '../policies/policy-engine'
 import { createId } from '../../infrastructure/ids/create-id'
 import { now } from '../../infrastructure/clock/now'
 
+// --- helpers ----------------------------------------------------------------
+
 const normalizeEnvironment = (env: string): 'sandbox' | 'staging' | 'production' => {
   if (env === 'sandbox' || env === 'staging' || env === 'production') return env
   return 'sandbox'
 }
+
+const formatStartTime = (): string => {
+  const d = new Date()
+  const hh = d.getHours().toString().padStart(2, '0')
+  const mm = d.getMinutes().toString().padStart(2, '0')
+  return `${hh}:${mm}`
+}
+
+// --- step 1: construction ---------------------------------------------------
 
 const buildInitialRun = (params: CreateRunParams): DomainRun => ({
   id: createId('RUN'),
@@ -16,7 +27,7 @@ const buildInitialRun = (params: CreateRunParams): DomainRun => ({
   title: params.title,
   runtimeStatus: 'queued',
   approvalState: 'not_required',
-  startedAt: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+  startedAt: formatStartTime(),
   duration: '-',
   node: params.node,
   initiatedBy: params.initiatedBy,
@@ -25,6 +36,18 @@ const buildInitialRun = (params: CreateRunParams): DomainRun => ({
   toolCalls: [],
   errors: [],
 })
+
+// --- step 2: policy evaluation ----------------------------------------------
+
+const applyPolicies = (run: DomainRun): DomainRun => policyEngine.evaluate(run)
+
+// --- step 3: store insertion -------------------------------------------------
+
+const insertIntoStore = (run: DomainRun): void => {
+  useRunStore.getState().addRun(run)
+}
+
+// --- step 4: event emission --------------------------------------------------
 
 const emitRunCreated = (run: DomainRun): void => {
   useEventStore.getState().append({
@@ -55,16 +78,19 @@ const emitApprovalRequired = (run: DomainRun): void => {
   })
 }
 
+const emitEvents = (run: DomainRun): void => {
+  emitRunCreated(run)
+  if (run.runtimeStatus === 'waiting_approval') {
+    emitApprovalRequired(run)
+  }
+}
+
+// --- public API -------------------------------------------------------------
+
 export const createRun = (params: CreateRunParams): DomainRun => {
   const initial = buildInitialRun(params)
-  const evaluated = policyEngine.evaluate(initial)
-
-  useRunStore.getState().addRun(evaluated)
-  emitRunCreated(evaluated)
-
-  if (evaluated.runtimeStatus === 'waiting_approval') {
-    emitApprovalRequired(evaluated)
-  }
-
+  const evaluated = applyPolicies(initial)
+  insertIntoStore(evaluated)
+  emitEvents(evaluated)
   return evaluated
 }
