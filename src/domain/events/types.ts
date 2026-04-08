@@ -76,6 +76,32 @@ export type ApprovalRequiredEvent = {
   }
 }
 
+export type ToolCallStartedEvent = {
+  id: string
+  type: 'TOOL_CALL_STARTED'
+  occurredAt: string
+  payload: {
+    runId: string
+    toolCallId: string
+    toolName: string
+    inputSummary: string
+  }
+}
+
+export type ToolCallFinishedEvent = {
+  id: string
+  type: 'TOOL_CALL_FINISHED'
+  occurredAt: string
+  payload: {
+    runId: string
+    toolCallId: string
+    toolName: string
+    status: 'succeeded' | 'failed'
+    outputSummary: string
+    error?: string
+  }
+}
+
 export type DomainEvent =
   | RunCreatedEvent
   | RunUpdatedEvent
@@ -84,5 +110,7 @@ export type DomainEvent =
   | RunSucceededEvent
   | TaskUpdatedEvent
   | ApprovalRequiredEvent
+  | ToolCallStartedEvent
+  | ToolCallFinishedEvent
 
 export type EventType = DomainEvent['type']

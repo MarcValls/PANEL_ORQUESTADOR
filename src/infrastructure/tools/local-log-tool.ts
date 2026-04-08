@@ -3,6 +3,7 @@ import type { ToolCall, ToolResult } from '../../domain/tools/types'
 export const localLogTool = {
   name: 'local_log' as const,
   description: 'Log a message to the console',
+  mutates: false,
   execute: (call: ToolCall): ToolResult => {
     const { message, level = 'info' } = call.args as {
       message: string
@@ -13,6 +14,7 @@ export const localLogTool = {
     fn(`[local_log] ${message}`)
     return {
       toolCallId: call.id,
+      status: 'succeeded',
       output: { message, level },
     }
   },
