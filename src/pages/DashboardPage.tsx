@@ -1,18 +1,41 @@
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useUIStore } from '../app/store/ui-store'
 import { useArchitecturesQuery, useRunsQuery, useActivityQuery } from '../lib/query/hooks'
 
+type WorkspaceBootstrapBanner = {
+  tone: 'success' | 'warning'
+  text: string
+}
+
 export const DashboardPage = () => {
+  const location = useLocation()
   const navigate = useNavigate()
   const activeArchitectureId = useUIStore((s) => s.activeArchitectureId)
   const setActiveArchitectureId = useUIStore((s) => s.setActiveArchitectureId)
-  const openInspector = useUIStore((s) => s.openInspector)
+  const openInspectorForArchitecture = useUIStore((s) => s.openInspectorForArchitecture)
   const { data: architectures = [] } = useArchitecturesQuery()
   const { data: runs = [] } = useRunsQuery()
   const { data: activity = [] } = useActivityQuery()
 
   const active = architectures.find((a) => a.id === activeArchitectureId)
+
+  const workspaceBootstrap = useMemo(() => {
+    const stateValue = location.state
+    return (
+      stateValue !== null
+      && typeof stateValue === 'object'
+      && 'workspaceBootstrap' in stateValue
+      && stateValue.workspaceBootstrap !== null
+      && typeof stateValue.workspaceBootstrap === 'object'
+      && 'text' in stateValue.workspaceBootstrap
+      && typeof stateValue.workspaceBootstrap.text === 'string'
+      && 'tone' in stateValue.workspaceBootstrap
+      && (stateValue.workspaceBootstrap.tone === 'success' || stateValue.workspaceBootstrap.tone === 'warning')
+        ? stateValue.workspaceBootstrap as WorkspaceBootstrapBanner
+        : null
+    )
+  }, [location.state])
 
   const metrics = useMemo(() => [
     { label: 'Arquitecturas', value: architectures.length },
@@ -29,6 +52,15 @@ export const DashboardPage = () => {
           <p>Resumen de estado de las arquitecturas activas</p>
         </div>
       </div>
+
+      {workspaceBootstrap && (
+        <div className={`workspace-bootstrap-banner ${workspaceBootstrap.tone === 'warning' ? 'is-warning' : 'is-success'}`}>
+          <span>{workspaceBootstrap.text}</span>
+          <button className="btn btn-ghost" type="button" onClick={() => navigate(location.pathname, { replace: true })}>
+            Ocultar
+          </button>
+        </div>
+      )}
 
       <div className="metrics-row">
         {metrics.map((m) => (
@@ -47,7 +79,7 @@ export const DashboardPage = () => {
               <span className="text-sm text-muted">{active.domain} · {active.environment}</span>
             </div>
             <div className="flex-row">
-              <button className="btn" type="button" onClick={() => { openInspector() }}>
+              <button className="btn" type="button" onClick={() => { openInspectorForArchitecture(active.id) }}>
                 Inspeccionar
               </button>
               <button className="btn" type="button" onClick={() => navigate(`/architectures/${active.id}`)}>

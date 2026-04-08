@@ -1,0 +1,23 @@
+{
+  "activeWorkspacePath": "/Volumes/Warehouse/AMTEC/2026/ABRIL2026/Pandamien_Doc_Dev_amTech_Ordenado",
+  "projects": [
+    {
+      "path": "/Users/INTELIA_Manager/Documents/GitHub/PANEL_ORQUESTADOR",
+      "name": "PANEL_ORQUESTADOR",
+      "favorite": false,
+      "createdAt": "2026-04-08T05:21:42.838Z"
+    },
+    {
+      "path": "/Volumes/Warehouse/AMTEC/2026/ABRIL2026/Pandamien_Doc_Dev_amTech_Ordenado",
+      "name": "Pandamien_Doc_Dev_amTech_Ordenado",
+      "favorite": true,
+      "createdAt": "2026-04-08T05:35:59.688Z"
+    },
+    {
+      "path": "/Volumes/Warehouse/Bianca_The_Game/release/bianca_motor_demo_localhost3000_20260216_111521",
+      "name": "bianca_motor_demo_localhost3000_20260216_111521",
+      "favorite": true,
+      "createdAt": "2026-04-08T05:14:01.842Z"
+    }
+  ]
+}

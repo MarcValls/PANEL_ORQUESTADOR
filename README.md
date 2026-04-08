@@ -18,6 +18,111 @@ npm install
 npm run dev
 ```
 
+## App de escritorio (Electron)
+
+El empaquetado de Electron arranca automáticamente:
+- la UI compilada (`dist`)
+- el `terminal-agent` embebido
+
+Comandos:
+
+```bash
+# abrir app Electron local (compila antes)
+npm run electron:start
+
+# generar paquete local sin instalador (directorio unpacked)
+npm run electron:pack
+
+# generar instalador/artefactos del sistema operativo actual
+npm run electron:dist
+```
+
+## Ejecutar terminal real desde el panel (MVP)
+
+Para habilitar ejecucion de comandos en terminal desde la vista **Ejecuciones**:
+
+### Arranque rapido (UI + agent en un comando)
+
+```bash
+./scripts/start-panel.sh /ruta/proyecto-a /ruta/proyecto-b
+```
+
+Sin argumentos, toma este repo como `cwd` permitido por defecto.
+
+Variables opcionales del script:
+
+- `PANEL_UI_PORT` (default `5173`)
+- `PANEL_AGENT_PORT` (default `8787`)
+- `PANEL_AGENT_TIMEOUT_MS` (default `600000`)
+- `PANEL_COMMAND_ALLOWLIST` (prefijos permitidos para comandos)
+- `PANEL_PROJECT_DIRS` (lista CSV de rutas permitidas si no pasas argumentos)
+- `PANEL_PROJECTS_FILE` (archivo de persistencia de proyectos/favoritos)
+- `PANEL_WORKSPACE_FILE_NAME` (nombre del archivo de trabajo que crea el panel en cada carpeta)
+
+Ejemplo:
+
+```bash
+PANEL_COMMAND_ALLOWLIST="npm run lint,npm run build,npm run test,git status" \
+./scripts/start-panel.sh /Users/tuuser/projA /Users/tuuser/projB
+```
+
+### Arranque manual (dos terminales)
+
+1. Inicia la UI:
+
+```bash
+npm run dev
+```
+
+2. En otra terminal, inicia el agent local:
+
+```bash
+npm run terminal:agent
+```
+
+Por defecto escucha en `http://localhost:8787`.
+
+### Variables opcionales del agent
+
+- `TERMINAL_AGENT_PORT`: puerto del agent (default `8787`)
+- `TERMINAL_AGENT_ALLOWLIST`: prefijos permitidos para comandos, separados por coma
+- `TERMINAL_AGENT_ALLOWED_CWDS`: roots de `cwd` permitidos, separados por coma
+- `TERMINAL_AGENT_RUN_TIMEOUT_MS`: timeout maximo por run (default `600000`)
+- `TERMINAL_AGENT_PROJECTS_FILE`: archivo JSON para persistir proyectos y favoritos
+- `TERMINAL_AGENT_WORKSPACE_FILE_NAME`: nombre del archivo de trabajo que crea el panel
+
+Ejemplo:
+
+```bash
+TERMINAL_AGENT_ALLOWLIST="npm run lint,npm run build,git status" npm run terminal:agent
+```
+
+### Primer pantalla obligatoria
+
+La primera pantalla ahora es **Proyectos recientes**.
+
+- Debes elegir carpeta de trabajo para entrar al panel.
+- Puedes pulsar **Elegir carpeta (Finder/Explorador)** para abrir selector nativo:
+  - macOS: Finder
+  - Windows: Explorador
+  - Linux: selector de carpetas con `zenity` (si está instalado)
+- Al seleccionar carpeta, el agent crea/actualiza el archivo:
+  - `.panel-orquestador-workspace.json` (por defecto)
+  - ruta: `<carpeta-elegida>/.panel-orquestador-workspace.json`
+- La carpeta debe tener permisos de escritura (si no, el panel mostrará error al enlazar workspace).
+
+### Usarlo en la UI
+
+1. Entra a **Proyectos recientes**.
+2. Elige una carpeta desde recientes, escribe una ruta, o usa **Elegir carpeta (Finder/Explorador)**.
+3. Si lo necesitas, usa **Inicializar package.json** para previsualizar/editar el JSON antes de guardarlo.
+4. Si no existe `package.json`, el panel bloquea el acceso al dashboard hasta crearlo.
+5. Pulsa **Entrar** para abrir dashboard.
+6. Ve a **Ejecuciones** para lanzar comandos.
+7. Abre el inspector del run para ver logs en vivo y estado final.
+8. Si ejecutas `npm/pnpm/yarn` y no existe `package.json`, el agent intentará crearlo automáticamente según la estructura detectada de la carpeta.
+9. Usa **Piloto (beta)** en la pantalla inicial para guiar el flujo con comandos: elegir carpeta, crear package.json, consultar estado y ejecutar comandos.
+
 ## Qué verás
 
 - Barra superior con navegación principal y selector de arquitectura

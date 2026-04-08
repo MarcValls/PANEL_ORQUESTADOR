@@ -41,6 +41,10 @@ export type DomainRun = {
   environment: Environment
   toolCalls: RuntimeToolCall[]
   errors: string[]
+  terminalCommand?: string
+  terminalCwd?: string
+  terminalLogs?: string[]
+  terminalExitCode?: number | null
 }
 
 export type CreateRunParams = {

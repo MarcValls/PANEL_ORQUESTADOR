@@ -14,6 +14,12 @@ const loadPanelData = async (): Promise<OrchestratorPanelData> => {
   return response.json() as Promise<OrchestratorPanelData>
 }
 
+export const usePanelDataQuery = () =>
+  useQuery({
+    queryKey: ['panel-data'],
+    queryFn: loadPanelData,
+  })
+
 // Fuente: snapshot local (public/data/orchestrator-panel.json)
 export const useArchitecturesQuery = () =>
   useQuery({

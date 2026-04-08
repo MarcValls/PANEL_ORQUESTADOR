@@ -4,7 +4,9 @@ import { useArchitectureQuery, useRunsQuery, useTasksQuery } from '../lib/query/
 
 export const ArchitectureOverviewPage = () => {
   const { architectureId = '' } = useParams()
-  const openInspector = useUIStore((s) => s.openInspector)
+  const openInspectorForArchitecture = useUIStore((s) => s.openInspectorForArchitecture)
+  const openInspectorForTask = useUIStore((s) => s.openInspectorForTask)
+  const openInspectorForRun = useUIStore((s) => s.openInspectorForRun)
   const setActive = useUIStore((s) => s.setActiveArchitectureId)
   const { data: arch, isLoading } = useArchitectureQuery(architectureId)
   const { data: tasks = [] } = useTasksQuery(architectureId)
@@ -23,7 +25,7 @@ export const ArchitectureOverviewPage = () => {
           <p>{arch.summary}</p>
         </div>
         <div className="flex-row">
-          <button className="btn" type="button" onClick={() => { setActive(arch.id); openInspector() }}>
+          <button className="btn" type="button" onClick={() => { setActive(arch.id); openInspectorForArchitecture(arch.id) }}>
             Inspeccionar
           </button>
           <Link className="btn" to="/tasks">Tareas</Link>
@@ -56,7 +58,12 @@ export const ArchitectureOverviewPage = () => {
           </div>
           <div className="list-card">
             {tasks.slice(0, 4).map((t) => (
-              <div key={t.id} className="list-item">
+              <button
+                key={t.id}
+                type="button"
+                className="list-item-clickable"
+                onClick={() => openInspectorForTask(t.id)}
+              >
                 <div className="list-item-main">
                   <strong>{t.title}</strong>
                   <span>{t.domain} · {t.assignee}</span>
@@ -64,7 +71,7 @@ export const ArchitectureOverviewPage = () => {
                 <div className="list-item-meta">
                   <span className={`status status-${t.risk.toLowerCase()}`}>{t.risk}</span>
                 </div>
-              </div>
+              </button>
             ))}
             {!tasks.length && <div className="empty">Sin tareas</div>}
           </div>
@@ -76,15 +83,20 @@ export const ArchitectureOverviewPage = () => {
           </div>
           <div className="list-card">
             {relatedRuns.map((r) => (
-              <div key={r.id} className="list-item">
+              <button
+                key={r.id}
+                type="button"
+                className="list-item-clickable"
+                onClick={() => openInspectorForRun(r.id)}
+              >
                 <div className="list-item-main">
                   <strong>{r.title}</strong>
                   <span>{r.node} · {r.initiatedBy}</span>
                 </div>
                 <div className="list-item-meta">
-                  <span className={`status status-${r.status.toLowerCase()}`}>{r.status}</span>
+                  <span className={`status status-${r.status.toLowerCase().replace(/ /g, '-')}`}>{r.status}</span>
                 </div>
-              </div>
+              </button>
             ))}
             {!relatedRuns.length && <div className="empty">Sin ejecuciones</div>}
           </div>

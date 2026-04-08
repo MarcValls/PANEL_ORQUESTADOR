@@ -3,18 +3,50 @@ import { useMemo, useState } from 'react'
 import { useUIStore } from '../app/store/ui-store'
 import { useArchitectureQuery, useTasksQuery } from '../lib/query/hooks'
 
-const filters = ['Todas', 'Todo', 'In progress', 'Blocked', 'Done'] as const
+const filters = [
+  { key: 'priority', label: 'Prioridad', statuses: ['Blocked', 'In progress'] as const },
+  { key: 'blocked', label: 'Bloqueadas', statuses: ['Blocked'] as const },
+  { key: 'inProgress', label: 'En progreso', statuses: ['In progress'] as const },
+  { key: 'todo', label: 'Pendientes', statuses: ['Todo'] as const },
+  { key: 'done', label: 'Completadas', statuses: ['Done'] as const },
+  { key: 'all', label: 'Todas', statuses: null },
+] as const
+
+type FilterKey = (typeof filters)[number]['key']
+
+const taskStatusLabel = {
+  Todo: 'Pendiente',
+  'In progress': 'En progreso',
+  Blocked: 'Bloqueada',
+  Done: 'Completada',
+} as const
 
 export const TasksPage = () => {
   const activeArchitectureId = useUIStore((s) => s.activeArchitectureId)
-  const openInspector = useUIStore((s) => s.openInspector)
+  const openInspectorForTask = useUIStore((s) => s.openInspectorForTask)
   const { data: tasks = [], isLoading } = useTasksQuery(activeArchitectureId)
   const { data: arch } = useArchitectureQuery(activeArchitectureId)
-  const [filter, setFilter] = useState<(typeof filters)[number]>('Todas')
+  const [filter, setFilter] = useState<FilterKey>('priority')
   const [search, setSearch] = useState('')
 
+  const selectedFilter = filters.find((f) => f.key === filter) ?? filters[0]
+
+  const sortedTasks = useMemo(() => {
+    const statusWeight = {
+      Blocked: 0,
+      'In progress': 1,
+      Todo: 2,
+      Done: 3,
+    } as const
+    return [...tasks].sort((a, b) => statusWeight[a.status] - statusWeight[b.status])
+  }, [tasks])
+
   const filtered = useMemo(() => {
-    const byStatus = filter === 'Todas' ? tasks : tasks.filter((t) => t.status === filter)
+    let byStatus = sortedTasks
+    if (selectedFilter.statuses) {
+      const statuses = selectedFilter.statuses
+      byStatus = sortedTasks.filter((t) => statuses.some((status) => status === t.status))
+    }
     const q = search.trim().toLowerCase()
     if (!q) return byStatus
     return byStatus.filter((t) =>
@@ -22,7 +54,7 @@ export const TasksPage = () => {
       t.domain.toLowerCase().includes(q) ||
       t.assignee.toLowerCase().includes(q),
     )
-  }, [filter, search, tasks])
+  }, [search, selectedFilter, sortedTasks])
 
   return (
     <div className="page">
@@ -41,12 +73,12 @@ export const TasksPage = () => {
       <div className="filter-pills">
         {filters.map((f) => (
           <button
-            key={f}
+            key={f.key}
             type="button"
-            className={`pill ${filter === f ? 'active' : ''}`}
-            onClick={() => setFilter(f)}
+            className={`pill ${filter === f.key ? 'active' : ''}`}
+            onClick={() => setFilter(f.key)}
           >
-            {f}
+            {f.label}
           </button>
         ))}
       </div>
@@ -60,7 +92,7 @@ export const TasksPage = () => {
               key={t.id}
               type="button"
               className="list-item-clickable"
-              onClick={() => openInspector()}
+              onClick={() => openInspectorForTask(t.id)}
             >
               <div className="list-item-main">
                 <strong>{t.title}</strong>
@@ -68,7 +100,7 @@ export const TasksPage = () => {
               </div>
               <div className="list-item-meta">
                 <span className={`status status-${t.risk.toLowerCase()}`}>{t.risk}</span>
-                <span className={`status status-${t.status.toLowerCase().replace(' ', '-')}`}>{t.status}</span>
+                <span className={`status status-${t.status.toLowerCase().replace(' ', '-')}`}>{taskStatusLabel[t.status]}</span>
               </div>
             </button>
           ))}

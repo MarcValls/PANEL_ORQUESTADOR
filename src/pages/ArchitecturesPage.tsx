@@ -19,8 +19,9 @@ export const ArchitecturesPage = () => {
       ) : (
         <div className="arch-grid">
           {architectures.map((a) => (
-            <div
+            <button
               key={a.id}
+              type="button"
               className={`arch-card ${activeArchitectureId === a.id ? 'is-active' : ''}`}
               onClick={() => {
                 setActiveArchitectureId(a.id)
@@ -37,7 +38,7 @@ export const ArchitecturesPage = () => {
                 <span><strong>{a.pipelines}</strong> pipelines</span>
                 <span><strong>{a.health}%</strong> salud</span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
