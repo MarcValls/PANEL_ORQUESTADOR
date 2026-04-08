@@ -3,13 +3,12 @@ export type PolicyContext = {
   environment: string
 }
 
-export type PolicyResult = {
-  allowed: boolean
-  requiresApproval: boolean
-  reason?: string
-}
+export type PolicyDecision =
+  | { kind: 'allow' }
+  | { kind: 'require_approval'; reason: string }
+  | { kind: 'block'; reason: string }
 
 export type Policy = {
   name: string
-  evaluate: (context: PolicyContext) => PolicyResult
+  evaluate: (context: PolicyContext) => PolicyDecision
 }

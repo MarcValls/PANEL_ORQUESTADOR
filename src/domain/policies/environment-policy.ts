@@ -1,18 +1,22 @@
-import type { Policy, PolicyContext, PolicyResult } from './types'
+import type { Policy, PolicyContext, PolicyDecision } from './types'
 
 export const environmentPolicy: Policy = {
   name: 'environment-policy',
-  evaluate: (context: PolicyContext): PolicyResult => {
+  evaluate: (context: PolicyContext): PolicyDecision => {
     if (context.environment === 'production') {
-      const requiresApproval = context.riskLevel !== 'Low'
-      return {
-        allowed: true,
-        requiresApproval,
-        reason: requiresApproval
-          ? 'Non-low risk runs in production require approval'
-          : undefined,
+      if (context.riskLevel === 'High') {
+        return {
+          kind: 'block',
+          reason: 'High risk executions in production are blocked',
+        }
+      }
+      if (context.riskLevel === 'Medium') {
+        return {
+          kind: 'require_approval',
+          reason: 'Medium risk runs in production require approval',
+        }
       }
     }
-    return { allowed: true, requiresApproval: false }
+    return { kind: 'allow' }
   },
 }
