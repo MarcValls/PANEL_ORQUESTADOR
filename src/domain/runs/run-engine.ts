@@ -7,11 +7,6 @@ import { now } from '../../infrastructure/clock/now'
 
 // --- helpers ----------------------------------------------------------------
 
-const normalizeEnvironment = (env: string): 'sandbox' | 'staging' | 'production' => {
-  if (env === 'sandbox' || env === 'staging' || env === 'production') return env
-  return 'sandbox'
-}
-
 const formatStartTime = (): string => {
   const d = new Date()
   const hh = d.getHours().toString().padStart(2, '0')
@@ -32,7 +27,7 @@ const buildInitialRun = (params: CreateRunParams): DomainRun => ({
   node: params.node,
   initiatedBy: params.initiatedBy,
   riskLevel: params.riskLevel,
-  environment: normalizeEnvironment(params.environment),
+  environment: params.environment,
   toolCalls: [],
   errors: [],
 })

@@ -24,6 +24,8 @@ export type RuntimeToolCall = {
 
 export type RiskLevel = 'Low' | 'Medium' | 'High'
 
+export type Environment = 'sandbox' | 'staging' | 'production'
+
 export type DomainRun = {
   id: string
   architectureId: string
@@ -36,7 +38,7 @@ export type DomainRun = {
   node: string
   initiatedBy: string
   riskLevel: RiskLevel
-  environment: 'sandbox' | 'staging' | 'production'
+  environment: Environment
   toolCalls: RuntimeToolCall[]
   errors: string[]
 }
@@ -47,5 +49,5 @@ export type CreateRunParams = {
   node: string
   initiatedBy: string
   riskLevel: RiskLevel
-  environment: string
+  environment: Environment
 }
