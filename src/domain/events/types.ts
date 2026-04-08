@@ -1,6 +1,6 @@
 import type { RuntimeRunStatus, RiskLevel, Environment } from '../runs/types'
 
-type RunCreatedEvent = {
+export type RunCreatedEvent = {
   id: string
   type: 'RUN_CREATED'
   occurredAt: string
@@ -14,7 +14,7 @@ type RunCreatedEvent = {
   }
 }
 
-type RunUpdatedEvent = {
+export type RunUpdatedEvent = {
   id: string
   type: 'RUN_UPDATED'
   occurredAt: string
@@ -24,18 +24,18 @@ type RunUpdatedEvent = {
   }
 }
 
-type RunFailedEvent = {
+export type RunFailedEvent = {
   id: string
   type: 'RUN_FAILED'
   occurredAt: string
   payload: {
     runId: string
     title: string
-    error?: string
+    error: string
   }
 }
 
-type RunSucceededEvent = {
+export type RunSucceededEvent = {
   id: string
   type: 'RUN_SUCCEEDED'
   occurredAt: string
@@ -45,7 +45,7 @@ type RunSucceededEvent = {
   }
 }
 
-type TaskUpdatedEvent = {
+export type TaskUpdatedEvent = {
   id: string
   type: 'TASK_UPDATED'
   occurredAt: string
@@ -54,7 +54,7 @@ type TaskUpdatedEvent = {
   }
 }
 
-type ApprovalRequiredEvent = {
+export type ApprovalRequiredEvent = {
   id: string
   type: 'APPROVAL_REQUIRED'
   occurredAt: string
