@@ -14,12 +14,14 @@ const loadPanelData = async (): Promise<OrchestratorPanelData> => {
   return response.json() as Promise<OrchestratorPanelData>
 }
 
+// Fuente: snapshot local (public/data/orchestrator-panel.json)
 export const useArchitecturesQuery = () =>
   useQuery({
     queryKey: queryKeys.architectures,
     queryFn: async () => (await loadPanelData()).architectures,
   })
 
+// Fuente: snapshot local (public/data/orchestrator-panel.json)
 export const useArchitectureQuery = (architectureId: string) =>
   useQuery({
     queryKey: ['architecture', architectureId],
@@ -29,6 +31,7 @@ export const useArchitectureQuery = (architectureId: string) =>
     },
   })
 
+// Fuente: snapshot local (public/data/orchestrator-panel.json)
 export const useTasksQuery = (architectureId: string) =>
   useQuery({
     queryKey: queryKeys.tasks(architectureId),
@@ -38,6 +41,8 @@ export const useTasksQuery = (architectureId: string) =>
     },
   })
 
+// Fuente híbrida: snapshot local (public/data/orchestrator-panel.json) + runtime en memoria (Zustand run-store)
+// Los runs del runtime se añaden a continuación de los runs del snapshot.
 export const useRunsQuery = () => {
   const runtimeRuns = useRuntimeRunsProjection()
   const query = useQuery({
@@ -48,6 +53,8 @@ export const useRunsQuery = () => {
   return { ...query, data }
 }
 
+// Fuente híbrida: eventos runtime (event-store) + snapshot local (public/data/orchestrator-panel.json)
+// Los eventos del runtime aparecen primero para reflejar la actividad más reciente.
 export const useActivityQuery = () => {
   const eventActivity = useActivityProjection()
   const query = useQuery({

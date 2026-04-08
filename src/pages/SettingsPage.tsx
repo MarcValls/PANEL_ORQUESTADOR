@@ -27,9 +27,29 @@ export const SettingsPage = () => {
             <dt>Inspector</dt>
             <dd>{inspectorOpen ? 'Abierto' : 'Cerrado'}</dd>
           </div>
+        </dl>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <span className="card-title">Fuentes de datos</span>
+        </div>
+        <dl className="data-pairs">
           <div className="data-pair">
-            <dt>Fuente de datos</dt>
-            <dd className="mono">public/data/orchestrator-panel.json</dd>
+            <dt>Arquitecturas</dt>
+            <dd>Snapshot local — <code className="mono">public/data/orchestrator-panel.json</code></dd>
+          </div>
+          <div className="data-pair">
+            <dt>Tareas</dt>
+            <dd>Snapshot local — <code className="mono">public/data/orchestrator-panel.json</code></dd>
+          </div>
+          <div className="data-pair">
+            <dt>Ejecuciones</dt>
+            <dd>Snapshot local + runtime en memoria (Zustand)</dd>
+          </div>
+          <div className="data-pair">
+            <dt>Actividad</dt>
+            <dd>Snapshot local + eventos runtime (event-store)</dd>
           </div>
         </dl>
       </div>
@@ -42,8 +62,9 @@ export const SettingsPage = () => {
           <li>Selecciona una arquitectura en la barra superior.</li>
           <li>Navega a Arquitecturas para ver cada una en detalle.</li>
           <li>Usa Tareas para ver el backlog filtrado.</li>
-          <li>Revisa Ejecuciones para ver el historial.</li>
-          <li>Edita <code className="mono">public/data/orchestrator-panel.json</code> para cambiar los datos.</li>
+          <li>Revisa Ejecuciones para ver el historial, incluyendo runs creados desde el runtime.</li>
+          <li>Para datos estáticos (arquitecturas y tareas), edita <code className="mono">public/data/orchestrator-panel.json</code>.</li>
+          <li>Los runs nuevos y la actividad reciente se generan desde el runtime interno y no requieren editar el JSON.</li>
         </ol>
       </div>
     </div>
